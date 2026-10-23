@@ -5,6 +5,11 @@ manager that adds a **Tasksheet** next to your clipboard history: a personal
 list of words and notes you can keep, copy back, and fill by moving items over
 from the clipboard.
 
+![The Clipboard tab and the Tasksheet tab](docs/screenshot.png)
+
+This is an independent plugin by Samir Pravin Nimgade. It is not part of Diodon
+itself, and nothing in Diodon has to be changed to use it.
+
 * **Clipboard tab** – Diodon's text history. Click a row to paste it.
 * **Tasksheet tab** – your own list.
   * type a word and press Enter (or **+**) to add it
@@ -86,6 +91,14 @@ Preferences. Then use Clear in Diodon's menu to remove the entries already saved
 
 `diodon-tasksheet` only accepts `tasksheet`, `clipboard`, `enable`, `disable`
 and `hotkeys`.
+
+## Other distributions
+
+The .deb is for Debian and Ubuntu. On anything else, build from source with
+the per-user install below. You need Diodon with its development files (the
+`diodon.pc` file must be found by `pkg-config diodon`), GTK 3, libpeas 1.x, valac,
+meson and ninja. On Arch, Diodon comes from the AUR; check that its package
+ships the headers before building.
 
 ## Install for one user only (no root, no package)
 
@@ -170,4 +183,4 @@ Peas entry point that registers the menu entry and the shortcut service) · `tes
 
 ## License
 
-GPL-2.0-or-later, the same as Diodon.
+GPL-2.0-or-later, the same as Diodon. The full text is in `COPYING`.
