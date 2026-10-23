@@ -1,186 +1,240 @@
 # Diodon Tasksheet
 
-A plugin for the [Diodon](https://github.com/diodon-dev/diodon) clipboard
-manager that adds a **Tasksheet** next to your clipboard history: a personal
-list of words and notes you can keep, copy back, and fill by moving items over
-from the clipboard.
+[![Release](https://img.shields.io/github/v/release/blackirron/diodon-tasksheet)](https://github.com/blackirron/diodon-tasksheet/releases/latest)
+[![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue)](COPYING)
 
-![The Clipboard tab and the Tasksheet tab](docs/screenshot.png)
+A plugin for the [Diodon](https://github.com/diodon-dev/diodon) clipboard manager
+that adds a **Tasksheet** next to your clipboard history: a personal list of
+words and notes that you can keep, copy back with one click, and fill by moving
+items over from the clipboard.
 
-This is an independent plugin by Samir Pravin Nimgade. It is not part of Diodon
-itself, and nothing in Diodon has to be changed to use it.
+![The Clipboard tab and the Tasksheet tab](<img width="728" height="488" alt="image" src="https://github.com/user-attachments/assets/3a1fa7c5-83aa-422c-a1d8-573374b0ecf7" />
+)
 
-* **Clipboard tab** – Diodon's text history. Click a row to paste it.
-* **Tasksheet tab** – your own list.
-  * type a word and press Enter (or **+**) to add it
-  * **trash** button deletes it
-  * click a task to copy its text to the clipboard (the task stays)
-* **Move from Clipboard to Tasksheet** – press the arrow on a row, or drag the
-  row onto the *Tasksheet* tab.
-* **Shortcuts** – `Win+V` opens the Clipboard tab, `Win+Y` the Tasksheet tab
-  (press again to close).
+This is an independent project by Samir Pravin Nimgade. It is not part of
+Diodon and is not endorsed by the Diodon authors. Nothing in Diodon is patched
+or replaced.
 
-Tasks are stored in `~/.local/share/diodon/tasksheet.ini`.
+## Features
 
-## It is a plugin, not a fork
+* A second tab with your own list, kept separate from the clipboard history
+* Add a task by typing it and pressing Enter
+* Move a clipboard item to the tasksheet with one click or by drag and drop
+* Click a task to copy its text to the clipboard (the task stays in the list)
+* Updates instantly, no need to close and reopen the popup
+* Optional keyboard shortcuts on GNOME: Win+V for the clipboard, Win+Y for the tasksheet
+* Tasks survive restarts and are stored in one small text file
 
-Nothing in Diodon is patched or replaced. The plugin uses only Diodon's public
-plugin API and is built *against* an installed Diodon:
+## Install
 
-| Need | Used |
-|------|------|
-| lifecycle, appears in *Preferences → Plugins* | `Peas.Activatable` |
-| menu entry that survives every menu rebuild | `Controller.add_static_recent_menu_item()` |
-| read / paste / remove history | `Controller.get_recent_items()`, `select_item_by_checksum()`, `remove_item()` |
-| keyboard shortcuts | a small D-Bus service `org.diodon.Tasksheet` |
+Tested on Ubuntu 24.04 with Diodon 1.13. If you are on a different release or
+distribution, use option 2 or 3.
 
-Why D-Bus for shortcuts: Diodon dropped its built-in global hotkeys in 1.4.0,
-and applications cannot grab global keys on Wayland at all. The desktop owns
-the shortcut and runs `diodon-tasksheet clipboard|tasksheet`, which works on
-Wayland and X11 alike. Why a separate window instead of tabs in the tray
-menu: the tray menu is exported to the shell over D-Bus (dbusmenu) and can
-only hold plain menu items.
-
-## Install as a Debian package (recommended)
+You need Diodon itself first:
 
 ```bash
-bash scripts/build-deb.sh                       # builds dist/diodon-tasksheet_1.0.1_amd64.deb
-sudo apt install ./dist/diodon-tasksheet_*.deb   # also restarts a running Diodon for you
-diodon-tasksheet hotkeys                         # optional, GNOME: Win+V and Win+Y
+sudo apt install diodon zeitgeist-core
 ```
 
-`build-deb.sh` installs the build packages (one `sudo`), looks at the Diodon
-that is installed on the machine — where it keeps its plugins and what its
-default plugin list is — builds against it, runs the unit tests, and checks the
-resulting package. The package depends on `diodon`, recommends `zeitgeist-core`,
-and enables the plugin by default through a GSettings override generated from
-Diodon's own schema (so users who never customised their plugin list get it
-automatically; others run `diodon-tasksheet enable` or tick it in
-*Preferences → Plugins*). Installing or removing the package restarts a Diodon that is already
-running, so the Tasksheet tab appears or disappears at once. Shortcuts are
-not set automatically, because Win+V is a GNOME default; run
-`diodon-tasksheet hotkeys` if you want them. Remove it with
-`sudo apt remove diodon-tasksheet`.
+### Option 1: download the package (Ubuntu and Debian)
 
-A plugin links against `libdiodon`, so build on the same distribution release
-you install on. `build-deb.sh --dry-run` shows what would be built.
+1. Open the [latest release](https://github.com/blackirron/diodon-tasksheet/releases/latest)
+   and download `diodon-tasksheet_1.0.1_amd64.deb`.
+2. Install it from the folder where it was saved:
 
-### Troubleshooting
+   ```bash
+   sudo apt install ./diodon-tasksheet_1.0.1_amd64.deb
+   ```
 
-**`Unable to locate package diodon-dev`**: the package lives in the `universe`
-repository on Ubuntu. Run `sudo add-apt-repository universe && sudo apt update`
-and build again. `build-deb.sh` also tries the older name `libdiodon-dev`
-automatically.
+The package turns the plugin on and restarts Diodon if it is running. Open
+Diodon from the tray and you will see the **Tasksheet** tab. Apt may print a
+note that the download ran "unsandboxed as root"; it is harmless.
 
-**`Unsupported file ... .deb given on commandline`**: the build did not finish,
-so there is no package to install. Scroll up to the first error from
-`build-deb.sh`, fix that, and run `ls dist/` before installing.
+### Option 2: build the package yourself (Debian and Ubuntu, any release)
 
-**Clipboard history fills with half-selected fragments** (`p`, `pt`, `pt ins`
-and so on): this is Diodon's own *primary selection* option, not the plugin.
-The plugin never changes Diodon's clipboard settings. Put them back to the
-defaults with:
+A Diodon plugin links against the Diodon on your machine, so building it
+locally gives the best match for other releases.
 
 ```bash
-gsettings reset-recursively net.launchpad.Diodon.clipboard
-pkill -x diodon; diodon &
+git clone https://github.com/blackirron/diodon-tasksheet.git
+cd diodon-tasksheet
+bash scripts/build-deb.sh
+sudo apt install ./dist/diodon-tasksheet_*.deb
 ```
 
-Or untick *Use primary selection* and *Synchronize clipboards* in Diodon's
-Preferences. Then use Clear in Diodon's menu to remove the entries already saved.
+`build-deb.sh` installs the build packages (it asks for `sudo` once), reads
+where your Diodon keeps its plugins, builds, runs the unit tests and checks the
+result. On Ubuntu the development package lives in the `universe` repository;
+if apt cannot find `diodon-dev`, run
+`sudo add-apt-repository universe && sudo apt update` and try again.
 
-`diodon-tasksheet` only accepts `tasksheet`, `clipboard`, `enable`, `disable`
-and `hotkeys`.
+### Option 3: install for your user only (any distribution, no root)
 
-## Other distributions
-
-The .deb is for Debian and Ubuntu. On anything else, build from source with
-the per-user install below. You need Diodon with its development files (the
-`diodon.pc` file must be found by `pkg-config diodon`), GTK 3, libpeas 1.x, valac,
-meson and ninja. On Arch, Diodon comes from the AUR; check that its package
-ships the headers before building.
-
-## Install for one user only (no root, no package)
+You need Diodon with its development files (`pkg-config diodon` must print a
+version), GTK 3, libpeas 1.x, valac, meson and ninja. On Debian and Ubuntu:
 
 ```bash
 sudo apt install diodon diodon-dev libgtk-3-dev libpeas-dev valac meson ninja-build zeitgeist-core
+```
+
+Then:
+
+```bash
+git clone https://github.com/blackirron/diodon-tasksheet.git
+cd diodon-tasksheet
 bash scripts/install.sh
 pkill -x diodon; diodon &
 ```
 
-`install.sh` builds the plugin, runs the unit tests, installs it for **your
-user only** (`~/.local/share/diodon/plugins/tasksheet`, no root), and enables it
-in Diodon's settings. Then click Diodon's menu → **Tasksheet…**
-(or *Diodon → Preferences → Plugins* to toggle it).
+This builds the plugin, runs the unit tests and installs it under
+`~/.local`. To use a Diodon you built yourself, add
+`--diodon-prefix /path/to/its/prefix`.
 
-Diodon built from source into its own prefix:
-`bash scripts/install.sh --diodon-prefix /path/to/prefix`.
+## Using it
 
-### Try it without touching your system Diodon
+* **Clipboard tab:** Diodon's text history. Click a row to paste it.
+* **Tasksheet tab:** type a word or note and press Enter, or click **+**. The
+  bin button deletes a task. Clicking a task copies its text.
+* **Move from the clipboard:** click the arrow on a clipboard row, or drag the
+  row onto the Tasksheet tab.
+* **Menu:** Diodon's menu also has a **Tasksheet...** entry.
 
-```bash
-bash test-install.sh
-```
-
-Builds an unmodified Diodon into `~/diodon-tasksheet-test`, installs the plugin
-into it and starts it. Delete that folder to undo.
-
-### Keyboard shortcuts
+### Keyboard shortcuts (optional)
 
 ```bash
-diodon-tasksheet hotkeys               # GNOME: Win+V and Win+Y
-diodon-tasksheet hotkeys --undo
+diodon-tasksheet hotkeys           # GNOME: Win+V and Win+Y
+diodon-tasksheet hotkeys --undo    # put everything back
 ```
 
-GNOME uses `Win+V` for the notification list; the script releases it (and any
-other binding of these keys), registers the shortcuts, verifies them, and
-remembers what it changed for `--undo`. On other desktops (XFCE, KDE, …)
-create two custom shortcuts running `diodon-tasksheet clipboard` and
+Pressing a shortcut again closes the popup. GNOME already uses Win+V for its
+notification list, so shortcuts are not set up automatically. The script
+releases that binding, registers the new ones, checks them, and remembers what
+it changed so that `--undo` restores it exactly. On other desktops, create two
+custom shortcuts that run `diodon-tasksheet clipboard` and
 `diodon-tasksheet tasksheet`. Diodon must be running.
 
 ### The `diodon-tasksheet` command
 
-| command | does |
-|---------|------|
-| `tasksheet` (default) / `clipboard` | open or close that tab |
-| `enable` / `disable` | add / remove the plugin in your Diodon settings |
-| `hotkeys [--undo]` | set up / remove the GNOME shortcuts |
+| Command | What it does |
+|---------|--------------|
+| `tasksheet` (default) or `clipboard` | Open or close that tab |
+| `enable` or `disable` | Turn the plugin on or off in your Diodon settings |
+| `hotkeys [--undo]` | Set up or remove the GNOME shortcuts |
 
-See `man diodon-tasksheet`.
+See also `man diodon-tasksheet`.
 
-### Uninstall
+## Uninstall
+
+Installed from the package:
+
+```bash
+sudo apt remove diodon-tasksheet
+```
+
+Installed with `install.sh`:
 
 ```bash
 bash scripts/uninstall.sh            # keeps your tasks
 bash scripts/uninstall.sh --purge    # also deletes them
 ```
 
-## Requirements and limits
+Your tasks live in `~/.local/share/diodon/tasksheet.ini`. Removing the plugin
+does not delete that file, so reinstalling brings your list back.
 
-* Same platform as Diodon: GTK 3, libpeas, Zeitgeist (Diodon stores its
-  history there – without the `zeitgeist-core` service the Clipboard tab says
-  so instead of showing an empty list).
-* **Wayland:** Diodon is an X11 program and cannot reliably see text copied in
-  Wayland-native applications, so on Wayland the Clipboard tab may stay empty.
-  That is a Diodon limitation, not this plugin's. The Tasksheet tab, shortcuts
-  and the menu entry work regardless; use an Xorg session for clipboard
-  history. Wayland also ignores window positions requested by applications, so
-  the popup opens where the compositor puts it.
+## Troubleshooting
+
+**`Unable to locate package diodon-dev`**
+The package is in Ubuntu's `universe` repository. Run
+`sudo add-apt-repository universe && sudo apt update` and try again.
+
+**`Unsupported file ... .deb given on commandline`**
+There is no package to install because the build did not finish. Scroll up to
+the first error from `build-deb.sh`, fix it, and check with `ls dist/`.
+
+**The Tasksheet tab does not appear after installing**
+Restart Diodon with `pkill -x diodon; diodon &`. If it still does not show,
+check that the plugin is active:
+
+```bash
+gsettings get net.launchpad.Diodon.plugins active-plugins   # should include 'tasksheet'
+diodon-tasksheet enable
+```
+
+**The clipboard history fills with half-selected fragments**
+Entries such as `p`, `pt` and `pt ins` come from Diodon's own primary selection
+option, which saves text as you drag to highlight it. The plugin does not
+change Diodon's clipboard settings. Put them back to the defaults:
+
+```bash
+gsettings reset-recursively net.launchpad.Diodon.clipboard
+pkill -x diodon; diodon &
+```
+
+You can also untick "Use primary selection" and "Synchronize clipboards" in
+Diodon's Preferences. Use Clear in Diodon's menu to remove entries already saved.
+
+## Limits
+
+* Same platform as Diodon: GTK 3, libpeas and Zeitgeist. Without the
+  `zeitgeist-core` service the Clipboard tab says why it is empty.
+* On Wayland, Diodon is an X11 program and may not see text copied in
+  Wayland-native applications, so the Clipboard tab can stay empty. That is a
+  Diodon limitation, not this plugin's. The Tasksheet tab, the shortcuts and the
+  menu entry work either way. Wayland also ignores window positions requested
+  by applications, so the popup opens where the compositor puts it.
 * Only text items are listed in the Clipboard tab.
+
+## How it works
+
+The plugin is built against an installed Diodon and uses only Diodon's public
+plugin API:
+
+| Need | What is used |
+|------|--------------|
+| Lifecycle, listed under Preferences, Plugins | `Peas.Activatable` |
+| A menu entry that survives every menu rebuild | `Controller.add_static_recent_menu_item()` |
+| Read, paste and remove history | `Controller.get_recent_items()`, `select_item_by_checksum()`, `remove_item()` |
+| Keyboard shortcuts | A small D-Bus service, `org.diodon.Tasksheet` |
+
+Diodon dropped its built-in global hotkeys in version 1.4.0, and applications
+cannot grab global keys on Wayland at all. So the desktop owns the shortcut and
+runs `diodon-tasksheet clipboard` or `diodon-tasksheet tasksheet`, which works
+on both Wayland and X11. A separate popup window is used instead of tabs in the
+tray menu because that menu is exported to the shell over D-Bus and can only
+hold plain menu items.
+
+The Debian package turns the plugin on through a GSettings default generated
+from Diodon's own schema. Installing or removing it restarts a running Diodon so
+the tab appears or disappears at once.
 
 ## Development
 
 ```bash
+git clone https://github.com/blackirron/diodon-tasksheet.git
+cd diodon-tasksheet
 meson setup build -Dplugin_dir=$PWD/build/plugin -Dbin_dir=$PWD/build/bin
 meson compile -C build
-meson test -C build --print-errorlogs     # storage + label unit tests, no display needed
+meson test -C build --print-errorlogs     # storage and label tests, no display needed
 ```
 
-Layout: `src/` plugin sources (`tasksheet-storage.vala` is plain GLib and unit
-tested; `tasksheet-popup.vala` is the GTK window; `tasksheet-plugin.vala` is the
-Peas entry point that registers the menu entry and the shortcut service) · `tests/` · `scripts/` ·
-`bin/diodon-tasksheet.in` · `data/` (plugin descriptor, man page) · `debian/`.
+To try a change without touching your system Diodon, run `bash test-install.sh`.
+It builds an unmodified Diodon into `~/diodon-tasksheet-test`, installs the
+plugin into it and starts it. Delete that folder to undo.
+
+Layout: `src/` holds the plugin (`tasksheet-storage.vala` is plain GLib and unit
+tested, `tasksheet-popup.vala` is the GTK window, `tasksheet-plugin.vala` is the
+entry point that registers the menu entry and the shortcut service), `tests/`,
+`scripts/`, `bin/diodon-tasksheet.in`, `data/` (plugin descriptor and man page)
+and `debian/`.
+
+## Contributing
+
+Bug reports and pull requests are welcome. For a bug, please include your
+distribution and release, your Diodon version (`apt policy diodon`), whether you
+use Wayland or Xorg (`echo $XDG_SESSION_TYPE`), and any messages Diodon prints
+when started from a terminal. See [CHANGELOG.md](CHANGELOG.md) for what changed
+between versions.
 
 ## License
 
-GPL-2.0-or-later, the same as Diodon. The full text is in `COPYING`.
+GPL-2.0-or-later, the same as Diodon. The full text is in [COPYING](COPYING).
