@@ -1,0 +1,39 @@
+Source: diodon-tasksheet
+Section: utils
+Priority: optional
+Maintainer: Samir Pravin Nimgade <samirnimgade2@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ meson (>= 0.56),
+ ninja-build,
+ pkg-config,
+ valac,
+ libglib2.0-dev (>= 2.40),
+ libgtk-3-dev (>= 3.10),
+ libpeas-dev,
+ diodon-dev | libdiodon-dev,
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: diodon-tasksheet
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ diodon,
+ python3,
+ procps,
+Recommends:
+ zeitgeist-core,
+Description: Tasksheet plugin for the Diodon clipboard manager
+ Adds a Tasksheet next to Diodon's clipboard history: a personal list of
+ words and notes. Items are moved from the clipboard to the tasksheet with a
+ button or by drag and drop, tasks can be typed in directly, and a click
+ copies a task back to the clipboard.
+ .
+ The plugin appears in Diodon's preferences (Plugins) and adds a
+ "Tasksheet..." entry to Diodon's menu. The diodon-tasksheet command opens
+ the popup from keyboard shortcuts (GNOME shortcuts for Super+V and Super+Y
+ can be set up with "diodon-tasksheet hotkeys").
+ .
+ It uses only Diodon's public plugin interface and does not modify Diodon.

@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# scripts/build-deb.sh sets TASKSHEET_PLUGIN_DIR to the directory in which
+# the installed Diodon really keeps its plugins, so the package puts the
+# plugin where Diodon will look for it.
+%:
+	dh $@ --buildsystem=meson
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+	    $(if $(TASKSHEET_PLUGIN_DIR),-Dplugin_dir=$(TASKSHEET_PLUGIN_DIR),)

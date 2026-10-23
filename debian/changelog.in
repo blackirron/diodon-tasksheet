@@ -1,0 +1,8 @@
+diodon-tasksheet (@VERSION@) unstable; urgency=medium
+
+  * Initial release.
+  * Tasksheet tab next to Diodon's clipboard history; move text items over
+    by button or drag and drop; add and delete tasks.
+  * diodon-tasksheet command and GNOME shortcut helper (Super+V, Super+Y).
+
+ -- @MAINTAINER@  @DATE@

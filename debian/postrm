@@ -1,0 +1,48 @@
+#!/bin/bash
+# After removal, restart any Diodon that is already running so the Tasksheet
+# tab disappears straight away instead of staying until the next login. A new Diodon is started the same way the
+# old one was (same user, same display and session bus). If anything here
+# fails, the install still succeeds and the user just restarts Diodon.
+set -e
+
+#DEBHELPER#
+
+restart_diodon() {
+    local pid uid user kv
+    local -a env_args
+
+    for pid in $(pgrep -x diodon 2>/dev/null || true); do
+        uid="$(awk '/^Uid:/ {print $2}' "/proc/$pid/status" 2>/dev/null)" || continue
+        # Only ordinary desktop users, never root or system accounts.
+        [ -n "$uid" ] && [ "$uid" -ge 1000 ] || continue
+        user="$(getent passwd "$uid" | cut -d: -f1)" || continue
+        [ -n "$user" ] || continue
+
+        env_args=()
+        while IFS= read -r -d '' kv; do
+            case "$kv" in
+                HOME=*|LANG=*|DISPLAY=*|WAYLAND_DISPLAY=*|XAUTHORITY=*|\
+                DBUS_SESSION_BUS_ADDRESS=*|XDG_RUNTIME_DIR=*|XDG_SESSION_TYPE=*|\
+                XDG_CURRENT_DESKTOP=*|XDG_DATA_DIRS=*|GDK_BACKEND=*)
+                    env_args+=("$kv") ;;
+            esac
+        done < "/proc/$pid/environ" 2>/dev/null || continue
+
+        kill "$pid" 2>/dev/null || continue
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            kill -0 "$pid" 2>/dev/null || break
+            sleep 0.3
+        done
+
+        runuser -u "$user" -- env "${env_args[@]}" setsid -f diodon \
+            >/dev/null 2>&1 </dev/null || true
+    done
+}
+
+case "$1" in
+    remove|purge)
+        restart_diodon || true
+        ;;
+esac
+
+exit 0

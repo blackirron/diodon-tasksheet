@@ -1,0 +1,65 @@
+#!/bin/sh
+# diodon-tasksheet - control the Diodon Tasksheet plugin.
+# See diodon-tasksheet(1).
+LIBEXEC='@LIBEXECDIR@'
+SCHEMA='net.launchpad.Diodon.plugins'
+KEY='active-plugins'
+
+usage() {
+    cat <<USAGE
+Usage: diodon-tasksheet COMMAND
+
+  tasksheet        open/close the Tasksheet tab (default)
+  clipboard        open/close the Clipboard tab
+  enable           turn the plugin on for your user
+  disable          turn the plugin off for your user
+  hotkeys [--undo] set up Win+V / Win+Y (GNOME); --undo removes them
+USAGE
+}
+
+open_popup() {
+    if ! gdbus call --session --dest org.diodon.Tasksheet \
+            --object-path /org/diodon/Tasksheet \
+            --method "org.diodon.Tasksheet.$1" >/dev/null 2>&1; then
+        echo "diodon-tasksheet: cannot reach the Tasksheet plugin." >&2
+        echo "Is Diodon running, and the plugin enabled? Try: diodon-tasksheet enable" >&2
+        echo "(then restart Diodon: pkill -x diodon; diodon &)" >&2
+        exit 1
+    fi
+}
+
+set_plugin() {  # $1 = enable | disable
+    current=$(gsettings get "$SCHEMA" "$KEY" 2>/dev/null) || {
+        echo "diodon-tasksheet: Diodon's settings were not found. Is Diodon installed?" >&2
+        exit 1
+    }
+    case "$1" in
+        enable)
+            case "$current" in
+                *"'tasksheet'"*) updated=$current ;;
+                "@as []")        updated="['tasksheet']" ;;
+                *)               updated="${current%]}, 'tasksheet']" ;;
+            esac ;;
+        disable)
+            updated=$(printf '%s' "$current" |
+                sed -e "s/'tasksheet', //" -e "s/, 'tasksheet'//" -e "s/'tasksheet'//")
+            [ "$updated" = "[]" ] && updated="@as []" ;;
+    esac
+    gsettings set "$SCHEMA" "$KEY" "$updated" || exit 1
+    echo "Tasksheet plugin ${1}d. Restart Diodon to apply: pkill -x diodon; diodon &"
+}
+
+case "${1:-tasksheet}" in
+    tasksheet) open_popup ShowTasksheet ;;
+    clipboard) open_popup ShowClipboard ;;
+    enable|disable) set_plugin "$1" ;;
+    hotkeys)
+        shift
+        if [ ! -f "$LIBEXEC/setup-hotkeys.sh" ]; then
+            echo "diodon-tasksheet: $LIBEXEC/setup-hotkeys.sh is missing." >&2
+            exit 1
+        fi
+        exec bash "$LIBEXEC/setup-hotkeys.sh" "$@" ;;
+    -h|--help|help) usage ;;
+    *) usage >&2; exit 2 ;;
+esac

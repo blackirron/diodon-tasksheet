@@ -1,0 +1,6 @@
+[Plugin]
+Module=tasksheet
+Name=Tasksheet
+Description=A personal list of words and notes next to your clipboard history. Move items over by drag and drop.
+Authors=Samir Pravin Nimgade
+Copyright=Copyright © 2026 Samir Pravin Nimgade

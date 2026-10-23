@@ -1,0 +1,50 @@
+.TH DIODON-TASKSHEET 1 "2026" "diodon-tasksheet 1.0.1" "User Commands"
+.SH NAME
+diodon-tasksheet \- control the Tasksheet plugin of the Diodon clipboard manager
+.SH SYNOPSIS
+.B diodon-tasksheet
+[\fICOMMAND\fR]
+.SH DESCRIPTION
+The Tasksheet plugin adds a personal list of words and notes next to
+Diodon's clipboard history. Items can be moved from the clipboard to the
+tasksheet with a button or by drag and drop. Tasks are stored in
+.IR ~/.local/share/diodon/tasksheet.ini .
+.PP
+.B diodon-tasksheet
+talks to the plugin inside the running Diodon, so it is meant to be bound
+to keyboard shortcuts.
+.SH COMMANDS
+.TP
+.B tasksheet
+Open the Tasksheet tab, or close the popup if that tab is already showing.
+This is the default.
+.TP
+.B clipboard
+Open the Clipboard tab, or close the popup if that tab is already showing.
+.TP
+.B enable
+Add the plugin to the list of plugins Diodon loads for the current user.
+Restart Diodon afterwards.
+.TP
+.B disable
+Remove the plugin from that list.
+.TP
+.BR hotkeys " [" \-\-undo ]
+Set up the GNOME keyboard shortcuts Super+V (Clipboard tab) and Super+Y
+(Tasksheet tab). Other shortcuts that already use these keys are released
+first and restored by
+.BR \-\-undo .
+On other desktops, create two custom shortcuts that run
+.B diodon-tasksheet clipboard
+and
+.BR "diodon-tasksheet tasksheet" .
+.SH FILES
+.TP
+.I ~/.local/share/diodon/tasksheet.ini
+The saved tasks.
+.SH EXIT STATUS
+0 on success, 1 if Diodon or its plugin cannot be reached, 2 for a usage error.
+.SH SEE ALSO
+.BR diodon (1)
+.SH LICENSE
+GPL-2.0-or-later.

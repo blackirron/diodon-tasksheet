@@ -1,0 +1,10 @@
+option('plugin_dir', type: 'string', value: '',
+    description: 'Where to install the plugin (default: <prefix>/<libdir>/diodon/plugins/tasksheet)')
+option('bin_dir', type: 'string', value: '',
+    description: 'Where to install the diodon-tasksheet command (default: <prefix>/bin)')
+option('diodon_vapidir', type: 'string', value: '',
+    description: 'Directory containing diodon.vapi (default: <diodon prefix>/share/vala/vapi)')
+option('diodon_includedir', type: 'string', value: '',
+    description: 'Directory containing diodon.h (default: <diodon includedir>/diodon)')
+option('libexec_dir', type: 'string', value: '',
+    description: 'Where to install helper scripts (default: <prefix>/lib/diodon-tasksheet)')
